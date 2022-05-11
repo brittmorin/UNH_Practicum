@@ -1,0 +1,27 @@
+# Auto detect text files and perform LF normalization
+* text=auto
+cases_timestamp.csv filter=lfs diff=lfs merge=lfs -text
+covid_ts.csv filter=lfs diff=lfs merge=lfs -text
+covidcast-fb-survey-smoothed_tested_14d-2020-04-06-to-2021-03-31.csv filter=lfs diff=lfs merge=lfs -text
+data_download_file_best_masks_2020.csv filter=lfs diff=lfs merge=lfs -text
+data_download_file_best_masks_2021.csv filter=lfs diff=lfs merge=lfs -text
+mask_use.csv filter=lfs diff=lfs merge=lfs -text
+seatsandcounties.csv filter=lfs diff=lfs merge=lfs -text
+cases_by_fips.csv filter=lfs diff=lfs merge=lfs -text
+covid_all.csv filter=lfs diff=lfs merge=lfs -text
+covidcast-fb-survey-smoothed_wwearing_mask_7d-2020-04-06-to-2022-02-11.csv filter=lfs diff=lfs merge=lfs -text
+deaths_by_fips.csv filter=lfs diff=lfs merge=lfs -text
+deaths_timestamp.csv filter=lfs diff=lfs merge=lfs -text
+partisanship.csv filter=lfs diff=lfs merge=lfs -text
+U.S._State_and_Territorial_Public_Mask_Mandates_From_April_10__2020_through_August_15__2021_by_County_by_Day.csv filter=lfs diff=lfs merge=lfs -text
+raw_mobility.csv filter=lfs diff=lfs merge=lfs -text
+mask_mandates.csv filter=lfs diff=lfs merge=lfs -text
+smoothed_tested_14d.csv filter=lfs diff=lfs merge=lfs -text
+mob.csv filter=lfs diff=lfs merge=lfs -text
+master.csv filter=lfs diff=lfs merge=lfs -text
+og.csv filter=lfs diff=lfs merge=lfs -text
+state_votes.csv filter=lfs diff=lfs merge=lfs -text
+Phase1.csv filter=lfs diff=lfs merge=lfs -text
+Phase2.csv filter=lfs diff=lfs merge=lfs -text
+Phase3.csv filter=lfs diff=lfs merge=lfs -text
+*.csv filter=lfs diff=lfs merge=lfs -text

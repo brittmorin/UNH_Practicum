@@ -127,3 +127,10 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+
+
+
+Notebooks/cache/
+Notebooks/cache/*
+Notebooks/cache/*.*
+Notebooks/Secrets.py

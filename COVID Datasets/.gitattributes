@@ -1,0 +1,8 @@
+cases_q4.txt filter=lfs diff=lfs merge=lfs -text
+deaths_q1.txt filter=lfs diff=lfs merge=lfs -text
+deaths_q2.txt filter=lfs diff=lfs merge=lfs -text
+deaths_q3.txt filter=lfs diff=lfs merge=lfs -text
+deaths_q4.txt filter=lfs diff=lfs merge=lfs -text
+cases_q1.txt filter=lfs diff=lfs merge=lfs -text
+cases_q2.txt filter=lfs diff=lfs merge=lfs -text
+cases_q3.txt filter=lfs diff=lfs merge=lfs -text

@@ -1,0 +1,17 @@
+covid_all.jmp filter=lfs diff=lfs merge=lfs -text
+mask_mandate_start.jmp filter=lfs diff=lfs merge=lfs -text
+mask_use.jmp filter=lfs diff=lfs merge=lfs -text
+master.jmp filter=lfs diff=lfs merge=lfs -text
+partisanship.jmp filter=lfs diff=lfs merge=lfs -text
+phase1.jmp filter=lfs diff=lfs merge=lfs -text
+date_index.jmp filter=lfs diff=lfs merge=lfs -text
+mob_diff.jmp filter=lfs diff=lfs merge=lfs -text
+mobility_by_fips.jmp filter=lfs diff=lfs merge=lfs -text
+mobility_x_party.jmp filter=lfs diff=lfs merge=lfs -text
+covid_x_party.jmp filter=lfs diff=lfs merge=lfs -text
+phase2.jmp filter=lfs diff=lfs merge=lfs -text
+covid_by_fips.jmp filter=lfs diff=lfs merge=lfs -text
+masks_by_party.jmp filter=lfs diff=lfs merge=lfs -text
+orders.jmp filter=lfs diff=lfs merge=lfs -text
+phase3.jmp filter=lfs diff=lfs merge=lfs -text
+sentiment.jmp filter=lfs diff=lfs merge=lfs -text

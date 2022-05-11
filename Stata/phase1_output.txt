@@ -1,0 +1,319 @@
+. use phase1_mediation.dta
+
+. do ml_mediation
+
+. capture program drop ml_mediation
+
+. program ml_mediation, rclass
+  1. *! version .9 -- pbe -- 10/4/11
+. version 11.0
+  2. syntax, dv(varname max=1) iv(varname max=1) mv(varname max=1) l2id(varname max=1) 
+> l3id(varname max=1) [ cv(varlist fv) mle ]
+  3. local meth "reml"
+  4.    if "`mle'"~="" {
+  5.      local meth "mle"
+  6.    }
+  7. tempvar mvsd
+  8.   egen `mvsd'=sd(`mv'), by(`l2id')
+  9.   quietly sum `mvsd'
+ 10.   local mvl "1"
+ 11.   if r(max)==0 & r(min)==0 {
+ 12.     local mvl "2"
+ 13.   }
+ 14.    display
+ 15.   display as res "Equation 1 (c_path): `dv' = `iv' `cv'"
+ 16.   xtmixed `dv' `iv' `cv' || `l3id': || `l2id':, `meth' iterate(20)
+ 17.   local c_path = _b[`iv']
+ 18.    display
+ 19.   display as res "Equation 2 (a_path): `mv' = `iv' `cv'"
+ 20.    if "`mvl'"=="1" {
+ 21.     xtmixed `mv' `iv' `cv' || `l3id': || `l2id':, `meth' iterate(20)
+ 22.   }
+ 23.   if "`mvl'"=="2" {
+ 24.     xtreg `mv' `iv' `cv', i(`l2id') be
+ 25.   }
+ 26.   local a_path = _b[`iv']
+ 27.   display
+ 28.   display as res "Equation 3 (b_path & c_prime): `dv' = `mv' `iv' `cv'"
+ 29.   xtmixed `dv' `mv' `iv' `cv' || `l3id': || `l2id':, `mle' iterate(20)
+ 30.   local b_path = _b[`mv']
+ 31.   local c_prime = _b[`iv']
+ 32.   local ind_eff = `a_path'*`b_path'
+ 33.   local tot_eff = `ind_eff' + `c_prime'
+ 34.    display
+ 35.   display as txt "The mediator, " as res "`mv'" as txt ", is a level `mvl' variabl
+> e"
+ 36.   display as txt "c_path  = " as res `c_path'
+ 37.   display as txt "a_path  = " as res `a_path'
+ 38.   display as txt "b_path  = " as res `b_path'
+ 39.   display as txt "c_prime = " as res `c_prime' as txt "  same as dir_eff"
+ 40.   display as txt "ind_eff = " as res `ind_eff'
+ 41.   display as txt "dir_eff = " as res `c_prime'
+ 42.   display as txt "tot_eff = " as res `tot_eff'
+ 43.   display
+ 44.   local ind2tot = `ind_eff'/`tot_eff'
+ 45.   local ind2dir = `ind_eff'/`c_prime'
+ 46.   local tot2dir = `tot_eff'/`c_prime'
+ 47.   display as txt "proportion of total effect mediated = " as res `ind2tot'
+ 48.   display as txt "ratio of indirect to direct effect  = " as res `ind2dir'
+ 49.   display as txt "ratio of total to direct effect     = " as res `tot2dir'
+ 50.    return scalar c_path  = `c_path'
+ 51.   return scalar a_path  = `a_path'
+ 52.   return scalar b_path  = `b_path'
+ 53.   return scalar ind_eff = `a_path'*`b_path'
+ 54.   return scalar dir_eff = `c_prime'
+ 55.   return scalar tot_eff = `tot_eff'
+ 56. end
+
+. 
+end of do-file
+
+. ml_mediation, dv(caserate) iv(z_trump) mv(z_dist1_lag_wk23) l2id(county_fips) l3id(st
+> ate_fips) cv(state_policy2 weekend2 z_median_household_income_2018 z_medianage_county
+> _2018 z_pct_age0to17 z_pct_age65to84 z_pct_age85plus z_pop_density z_religion z_perce
+> ntemployed z_gini z_perc_black z_perc_asian z_perc_hisplatin) mle
+(3 missing values generated)
+
+Equation 1 (c_path): caserate = z_trump state_policy2 weekend2 z_median_household_incom
+> e_2018 z_medianage_county_2018 z_pct_age0to17 z_pct_age65to84 z_pct_age85plus z_pop_d
+> ensity z_religion z_percentemployed z_gini z_perc_black z_perc_asian z_perc_hisplatin
+
+Performing EM optimization: 
+
+Performing gradient-based optimization: 
+
+Iteration 0:   log likelihood = -962439.31  
+Iteration 1:   log likelihood = -962377.61  
+Iteration 2:   log likelihood = -962377.47  
+Iteration 3:   log likelihood = -962377.47  (backed up)
+
+Computing standard errors:
+
+Mixed-effects ML regression                     Number of obs     =    187,731
+
+-------------------------------------------------------------
+                |     No. of       Observations per Group
+ Group Variable |     Groups    Minimum    Average    Maximum
+----------------+--------------------------------------------
+     state_fips |         50         78    3,754.6     13,221
+    county_fips |      2,905          1       64.6        156
+-------------------------------------------------------------
+
+                                                Wald chi2(15)     =    1201.33
+Log likelihood = -962377.47                     Prob > chi2       =     0.0000
+
+--------------------------------------------------------------------------------------
+            caserate |      Coef.   Std. Err.      z    P>|z|     [95% Conf. Interval]
+---------------------+----------------------------------------------------------------
+             z_trump |   .5727842   .1957359     2.93   0.003     .1891489    .9564195
+       state_policy2 |  -9.700722   .3174333   -30.56   0.000    -10.32288   -9.078564
+            weekend2 |  -.8774856   .2058065    -4.26   0.000    -1.280859   -.4741122
+z_median_househ~2018 |  -.4110965   .1710004    -2.40   0.016    -.7462511   -.0759419
+z_medianage_cou~2018 |  -.2209524   .3033391    -0.73   0.466    -.8154861    .3735813
+      z_pct_age0to17 |  -.2055343   .1554227    -1.32   0.186    -.5101572    .0990887
+     z_pct_age65to84 |  -.3768463    .302042    -1.25   0.212    -.9688378    .2151451
+     z_pct_age85plus |  -.3643495   .1422436    -2.56   0.010    -.6431418   -.0855573
+       z_pop_density |   1.137398   .1652849     6.88   0.000     .8134459    1.461351
+          z_religion |  -.2278012   .1233894    -1.85   0.065      -.46964    .0140376
+   z_percentemployed |   .3259839   .1475147     2.21   0.027     .0368603    .6151074
+              z_gini |  -.0934035   .1209596    -0.77   0.440      -.33048    .1436731
+        z_perc_black |   .8738068   .1969857     4.44   0.000     .4877219    1.259892
+        z_perc_asian |  -.3126837    .144349    -2.17   0.030    -.5956025   -.0297649
+    z_perc_hisplatin |   .8057681   .1693474     4.76   0.000     .4738533    1.137683
+               _cons |   9.715367   .4135998    23.49   0.000     8.904726    10.52601
+--------------------------------------------------------------------------------------
+
+------------------------------------------------------------------------------
+  Random-effects Parameters  |   Estimate   Std. Err.     [95% Conf. Interval]
+-----------------------------+------------------------------------------------
+state_fips: Identity         |
+                   sd(_cons) |   2.606013   .3189675      2.050182    3.312539
+-----------------------------+------------------------------------------------
+county_fips: Identity        |
+                   sd(_cons) |   .0000301   .0000144      .0000117    .0000771
+-----------------------------+------------------------------------------------
+                sd(Residual) |   40.73516   .0664895      40.60505    40.86568
+------------------------------------------------------------------------------
+LR test vs. linear model: chi2(2) = 248.47                Prob > chi2 = 0.0000
+
+Note: LR test is conservative and provided only for reference.
+
+Equation 2 (a_path): z_dist1_lag_wk23 = z_trump state_policy2 weekend2 z_median_househo
+> ld_income_2018 z_medianage_county_2018 z_pct_age0to17 z_pct_age65to84 z_pct_age85plus
+>  z_pop_density z_religion z_percentemployed z_gini z_perc_black z_perc_asian z_perc_h
+> isplatin
+
+Performing EM optimization: 
+
+Performing gradient-based optimization: 
+
+Iteration 0:   log likelihood =  -823071.8  
+Iteration 1:   log likelihood =  -823071.8  
+
+Computing standard errors:
+
+Mixed-effects ML regression                     Number of obs     =    187,731
+
+-------------------------------------------------------------
+                |     No. of       Observations per Group
+ Group Variable |     Groups    Minimum    Average    Maximum
+----------------+--------------------------------------------
+     state_fips |         50         78    3,754.6     13,221
+    county_fips |      2,905          1       64.6        156
+-------------------------------------------------------------
+
+                                                Wald chi2(15)     =   13978.29
+Log likelihood =  -823071.8                     Prob > chi2       =     0.0000
+
+--------------------------------------------------------------------------------------
+    z_dist1_lag_wk23 |      Coef.   Std. Err.      z    P>|z|     [95% Conf. Interval]
+---------------------+----------------------------------------------------------------
+             z_trump |   -2.44597   .2698372    -9.06   0.000    -2.974841   -1.917098
+       state_policy2 |   17.69359   .1553053   113.93   0.000      17.3892    17.99798
+            weekend2 |   .3258158   .0964295     3.38   0.001     .1368174    .5148142
+z_median_househ~2018 |   2.910725   .2366427    12.30   0.000     2.446914    3.374536
+z_medianage_cou~2018 |   4.305255    .410812    10.48   0.000     3.500079    5.110432
+      z_pct_age0to17 |   1.451149   .2072042     7.00   0.000     1.045037    1.857262
+     z_pct_age65to84 |  -1.904388   .4063282    -4.69   0.000    -2.700777   -1.107999
+     z_pct_age85plus |  -.3475431   .1886217    -1.84   0.065    -.7172348    .0221487
+       z_pop_density |   1.092045   .2302174     4.74   0.000     .6408274    1.543263
+          z_religion |  -.2957013   .1648071    -1.79   0.073    -.6187174    .0273148
+   z_percentemployed |  -1.582788   .2007372    -7.88   0.000    -1.976225    -1.18935
+              z_gini |  -.1510895   .1617153    -0.93   0.350    -.4680458    .1658667
+        z_perc_black |  -.2331266   .2742726    -0.85   0.395     -.770691    .3044378
+        z_perc_asian |  -.4033457   .2129179    -1.89   0.058    -.8206572    .0139658
+    z_perc_hisplatin |   .1796545   .2312782     0.78   0.437    -.2736425    .6329516
+               _cons |   19.24425   .8530939    22.56   0.000     17.57222    20.91628
+--------------------------------------------------------------------------------------
+
+------------------------------------------------------------------------------
+  Random-effects Parameters  |   Estimate   Std. Err.     [95% Conf. Interval]
+-----------------------------+------------------------------------------------
+state_fips: Identity         |
+                   sd(_cons) |   5.799601   .6228398      4.698774     7.15833
+-----------------------------+------------------------------------------------
+county_fips: Identity        |
+                   sd(_cons) |   6.391316   .1008888      6.196605    6.592145
+-----------------------------+------------------------------------------------
+                sd(Residual) |   19.08343    .031405      19.02197    19.14508
+------------------------------------------------------------------------------
+LR test vs. linear model: chi2(2) = 18099.51              Prob > chi2 = 0.0000
+
+Note: LR test is conservative and provided only for reference.
+
+Equation 3 (b_path & c_prime): caserate = z_dist1_lag_wk23 z_trump state_policy2 weeken
+> d2 z_median_household_income_2018 z_medianage_county_2018 z_pct_age0to17 z_pct_age65t
+> o84 z_pct_age85plus z_pop_density z_religion z_percentemployed z_gini z_perc_black z_
+> perc_asian z_perc_hisplatin
+
+Performing EM optimization: 
+
+Performing gradient-based optimization: 
+
+Iteration 0:   log likelihood = -962043.84  
+Iteration 1:   log likelihood = -961983.67  
+Iteration 2:   log likelihood = -961983.58  
+Iteration 3:   log likelihood = -961983.58  (backed up)
+
+Computing standard errors:
+
+Mixed-effects ML regression                     Number of obs     =    187,731
+
+-------------------------------------------------------------
+                |     No. of       Observations per Group
+ Group Variable |     Groups    Minimum    Average    Maximum
+----------------+--------------------------------------------
+     state_fips |         50         78    3,754.6     13,221
+    county_fips |      2,905          1       64.6        156
+-------------------------------------------------------------
+
+                                                Wald chi2(16)     =    1981.53
+Log likelihood = -961983.58                     Prob > chi2       =     0.0000
+
+--------------------------------------------------------------------------------------
+            caserate |      Coef.   Std. Err.      z    P>|z|     [95% Conf. Interval]
+---------------------+----------------------------------------------------------------
+    z_dist1_lag_wk23 |  -.1318444   .0046798   -28.17   0.000    -.1410166   -.1226723
+             z_trump |   .1784694   .1916394     0.93   0.352     -.197137    .5540757
+       state_policy2 |  -7.337807   .3212423   -22.84   0.000    -7.967431   -6.708184
+            weekend2 |  -.8380519   .2053897    -4.08   0.000    -1.240608   -.4354955
+z_median_househ~2018 |  -.0454803   .1696796    -0.27   0.789    -.3780462    .2870856
+z_medianage_cou~2018 |   .4256838   .3019535     1.41   0.159    -.1661342    1.017502
+      z_pct_age0to17 |  -.0215242   .1544633    -0.14   0.889    -.3242668    .2812184
+     z_pct_age65to84 |  -.6792259   .3001108    -2.26   0.024    -1.267432   -.0910195
+     z_pct_age85plus |  -.4071343   .1409754    -2.89   0.004    -.6834411   -.1308276
+       z_pop_density |   1.221653   .1619352     7.54   0.000     .9042663    1.539041
+          z_religion |  -.2665872   .1222501    -2.18   0.029     -.506193   -.0269814
+   z_percentemployed |   .0809308   .1453387     0.56   0.578    -.2039278    .3657894
+              z_gini |  -.1206225   .1203108    -1.00   0.316    -.3564274    .1151824
+        z_perc_black |   .7671036   .1914339     4.01   0.000        .3919    1.142307
+        z_perc_asian |  -.3476335   .1406076    -2.47   0.013    -.6232194   -.0720476
+    z_perc_hisplatin |   .8092192    .165718     4.88   0.000     .4844179    1.134021
+               _cons |   12.24884   .3515669    34.84   0.000     11.55978    12.93789
+--------------------------------------------------------------------------------------
+
+------------------------------------------------------------------------------
+  Random-effects Parameters  |   Estimate   Std. Err.     [95% Conf. Interval]
+-----------------------------+------------------------------------------------
+state_fips: Identity         |
+                   sd(_cons) |   2.031054   .2687705      1.567045    2.632458
+-----------------------------+------------------------------------------------
+county_fips: Identity        |
+                   sd(_cons) |    .000031   .0000111      .0000153    .0000627
+-----------------------------+------------------------------------------------
+                sd(Residual) |   40.65206   .0663543      40.52222    40.78232
+------------------------------------------------------------------------------
+LR test vs. linear model: chi2(2) = 157.09                Prob > chi2 = 0.0000
+
+Note: LR test is conservative and provided only for reference.
+
+The mediator, z_dist1_lag_wk23, is a level 1 variable
+c_path  = .57278419
+a_path  = -2.4459697
+b_path  = -.13184442
+c_prime = .17846937  same as dir_eff
+ind_eff = .32248747
+dir_eff = .17846937
+tot_eff = .50095684
+
+proportion of total effect mediated = .64374302
+ratio of indirect to direct effect  = 1.8069625
+ratio of total to direct effect     = 2.8069625
+
+. bootstrap indeff = r(ind_eff) direff = r(dir_eff) toteff = r(tot_eff), reps(100) clus
+> ter(state_fips) idcluster(nstate_fips) group(county_fips): ml_mediation, dv(caserate)
+>  iv(z_trump) mv(z_dist1_lag_wk23) cv(state_policy2 weekend2 z_median_household_income
+> _2018 z_medianage_county_2018 z_pct_age0to17 z_pct_age65to84 z_pct_age85plus z_pop_de
+> nsity z_religion z_percentemployed z_gini z_perc_black z_perc_asian z_perc_hisplatin)
+>  l3id(state_fips) l2id(county_fips) mle
+(running ml_mediation on estimation sample)
+
+Bootstrap replications (100)
+----+--- 1 ---+--- 2 ---+--- 3 ---+--- 4 ---+--- 5 
+..................................................    50
+..................................................   100
+
+Bootstrap results                               Number of obs     =    187,731
+                                                Replications      =        100
+
+      command:  ml_mediation, dv(caserate) iv(z_trump) mv(z_dist1_lag_wk23)
+                    cv(state_policy2 weekend2 z_median_household_income_2018
+                    z_medianage_county_2018 z_pct_age0to17 z_pct_age65to84
+                    z_pct_age85plus z_pop_density z_religion z_percentemployed z_gini
+                    z_perc_black z_perc_asian z_perc_hisplatin) l3id(state_fips)
+                    l2id(county_fips) mle
+       indeff:  r(ind_eff)
+       direff:  r(dir_eff)
+       toteff:  r(tot_eff)
+
+                             (Replications based on 50 clusters in state_fips)
+------------------------------------------------------------------------------
+             |   Observed   Bootstrap                         Normal-based
+             |      Coef.   Std. Err.      z    P>|z|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+      indeff |   .3224875   .0890438     3.62   0.000     .1479647    .4970102
+      direff |   .1784694   .2910112     0.61   0.540    -.3919022    .7488409
+      toteff |   .5009568   .2497123     2.01   0.045     .0115297     .990384
+------------------------------------------------------------------------------
+
+. 
